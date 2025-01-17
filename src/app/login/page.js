@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { isTokenExpired } from '@/app/lib/clientAuth'; // Функция проверки истечения токена
+import { isTokenExpired } from '@/app/lib/clientAuth';
+import { toast } from 'react-toastify'; // Импорт функции для уведомлений
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -34,14 +35,18 @@ export default function Login() {
       if (response.ok) {
         localStorage.setItem('token', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
+        toast.success('Успешный вход!'); // Уведомление об успешном входе
         router.push('/dashboard');
       } else if (response.status === 400 || response.status === 401) {
         setErrorMessage(data.errors ? data.errors.join(', ') : data.message);
+        toast.error(data.message || 'Ошибка входа'); // Уведомление об ошибке
       } else {
         setErrorMessage(data.message || 'Ошибка входа');
+        toast.error(data.message || 'Ошибка входа'); // Уведомление об ошибке
       }
     } catch (error) {
       setErrorMessage('Произошла ошибка. Попробуйте позже.');
+      toast.error('Произошла ошибка. Попробуйте позже.'); // Уведомление об ошибке
     }
   };
 

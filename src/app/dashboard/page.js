@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from "@/app/lib/clientAuth";
 import Image from 'next/image';
+import { toast } from "react-toastify";
 
 export default function Dashboard() {
     const [canvases, setCanvases] = useState([]);
@@ -16,6 +17,7 @@ export default function Dashboard() {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
+            toast.warning("Вы не авторизованы. Перенаправляем на страницу входа...");
             router.push('/login');
         } else {
             fetchUserData();
@@ -30,15 +32,22 @@ export default function Dashboard() {
             if (response.ok) {
                 setUsername(data.username);
                 setAvatarUrl(data.avatar || '/default-avatar.png');
+                toast.info(`Добро пожаловать, ${data.username}!`);
+            } else {
+                toast.error("Ошибка при загрузке данных пользователя.");
             }
         } catch (error) {
             console.error('Ошибка при загрузке данных пользователя:', error);
+            toast.error('Произошла ошибка при загрузке данных пользователя.');
         }
     };
 
     const handleAvatarChange = async (event) => {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            toast.warning("Выберите файл для обновления аватара.");
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -60,9 +69,13 @@ export default function Dashboard() {
             const data = await response.json();
             if (response.ok) {
                 setAvatarUrl(data.user.avatar);
+                toast.success("Аватар успешно обновлен!");
+            } else {
+                toast.error("Не удалось обновить аватар.");
             }
         } catch (error) {
             console.error('Ошибка при обновлении аватара:', error);
+            toast.error('Произошла ошибка при обновлении аватара.');
         }
     };
 
@@ -72,14 +85,21 @@ export default function Dashboard() {
             const data = await response.json();
             if (response.ok) {
                 setCanvases(data.canvases);
+                toast.info("Канвасы успешно загружены.");
+            } else {
+                toast.error("Не удалось загрузить канвасы.");
             }
         } catch (error) {
             console.error('Ошибка при загрузке данных канвасов:', error);
+            toast.error('Произошла ошибка при загрузке данных канвасов.');
         }
     };
 
     const createCanvas = async () => {
-        if (!newCanvasTitle.trim()) return;
+        if (!newCanvasTitle.trim()) {
+            toast.warning("Название канваса не может быть пустым.");
+            return;
+        }
 
         try {
             const response = await fetchWithAuth('/api/canvas/create', {
@@ -91,9 +111,13 @@ export default function Dashboard() {
             if (response.ok) {
                 setCanvases([...canvases, data.canvas]);
                 setNewCanvasTitle('');
+                toast.success('Канвас успешно создан!');
+            } else {
+                toast.error(data.message || 'Ошибка при создании канваса.');
             }
         } catch (error) {
             console.error('Ошибка при создании канваса:', error);
+            toast.error('Произошла ошибка. Попробуйте позже.');
         }
     };
 
@@ -106,15 +130,20 @@ export default function Dashboard() {
 
             if (response.ok) {
                 setCanvases(canvases.filter((canvas) => canvas.id !== id));
+                toast.success("Канвас успешно удален.");
+            } else {
+                toast.error("Не удалось удалить канвас.");
             }
         } catch (error) {
             console.error('Ошибка при удалении канваса:', error);
+            toast.error('Произошла ошибка при удалении канваса.');
         }
     };
 
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        toast.info("Вы вышли из системы.");
         router.push('/login');
     };
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { isTokenExpired } from '@/app/lib/clientAuth';
+import {toast} from "react-toastify";
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -36,7 +37,7 @@ export default function Register() {
         // Сохраняем токены в localStorage
         localStorage.setItem('token', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
-
+        toast.success('Успешная регистрация!')
         // Перенаправляем на dashboard
         router.push('/dashboard');
       } else if (response.status === 400) {

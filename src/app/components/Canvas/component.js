@@ -6,6 +6,7 @@ import ContextMenu from '@/app/components/ContextMenu/component';
 import TextMenu from '@/app/components/TextMenu/component';
 import ObjectMenu from '@/app/components/ObjectMenu/component';
 import { fetchWithAuth } from '@/app/lib/clientAuth';
+import { toast } from "react-toastify";
 
 // eslint-disable-next-line react/display-name
 const CanvasComponent = React.memo(({ initialData, canvasId, setSaveCanvas }) => {
@@ -50,6 +51,7 @@ const CanvasComponent = React.memo(({ initialData, canvasId, setSaveCanvas }) =>
         // Проверяем, есть ли объекты на канвасе
         if (!canvasJSON || !canvasJSON.objects || canvasJSON.objects.length === 0) {
             console.warn("Пустые данные канваса. Сохранение пропущено.");
+            toast.warn("Канвас пуст. Сохранение пропущено.");
             return; // Пропускаем сохранение
         }
 
@@ -68,14 +70,18 @@ const CanvasComponent = React.memo(({ initialData, canvasId, setSaveCanvas }) =>
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Ошибка сохранения (ответ сервера):", errorData);
+                toast.error(`Ошибка сохранения: ${errorData.message || "Попробуйте позже."}`);
             } else {
                 const successData = await response.json();
                 console.log("Канвас успешно сохранён (ответ сервера):", successData);
+                toast.success("Канвас успешно сохранён!");
             }
         } catch (error) {
             console.error("Ошибка при попытке сохранить канвас:", error);
+            toast.error("Произошла ошибка при сохранении. Проверьте соединение.");
         }
     }, [canvasId, getCanvasData]);
+
 
     useEffect(() => {
         if (setSaveCanvas) {

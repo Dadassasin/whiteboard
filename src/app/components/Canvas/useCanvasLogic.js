@@ -19,6 +19,7 @@ import {
 } from 'fabric';
 import HistoryManager from "@/app/components/Canvas/HistoryManager";
 import { fetchWithAuth } from "@/app/lib/clientAuth";
+import { toast } from 'react-toastify';
 
 
 // ======================[ Константы для зума ]======================
@@ -1199,36 +1200,37 @@ export function useCanvasLogic() {
         const canvas = canvasInstanceRef.current;
 
         if (!canvas) {
+            toast.error('Canvas не инициализирован. Попробуйте перезагрузить страницу.');
             console.error('Canvas instance не инициализирован.');
             return;
         }
 
-        // Исключаем дублирование вызова
         const objectsExcludingBoundary = canvas.getObjects().filter((obj) => !obj.isBoundary);
         if (objectsExcludingBoundary.length > 0) {
+            toast.info('Канвас уже содержит пользовательские объекты. Повторная инициализация пропущена.');
             console.log('Канвас уже содержит пользовательские объекты, повторная инициализация пропущена.');
             return;
         }
 
-        // Очистка истории перед загрузкой данных
-        if (historyManagerRef.current) {
-            historyManagerRef.current.clear();
-        }
-
         if (initialData && initialData.objects && initialData.objects.length > 0) {
+            toast.info('Загрузка данных канваса началась...');
             console.log('Инициализация канваса:', initialData);
             try {
                 canvas.loadFromJSON(initialData, () => {
+                    toast.success('Данные канваса успешно загружены!');
                     console.log('Данные канваса загружены успешно.');
                     canvas.renderAll();
                     if (historyManagerRef.current) {
-                        historyManagerRef.current.clear(); // Дополнительно очищаем историю после загрузки
+                        historyManagerRef.current.clear(); // Сброс истории
+                        toast.info('История изменений сброшена.');
                     }
                 });
             } catch (error) {
+                toast.error('Ошибка при загрузке данных канваса.');
                 console.error('Ошибка при загрузке данных в канвас:', error);
             }
         } else {
+            toast.warn('Нет данных для загрузки канваса.');
             console.warn('Инициализация канваса пропущена: данные отсутствуют.');
         }
     }, []);
